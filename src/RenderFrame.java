@@ -2,9 +2,18 @@ import javafx.util.Pair;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RenderFrame extends JFrame {
+
+    private AtomicBoolean paused = new AtomicBoolean(false);
+
+    private double screenLocation = 3.0;
+    private double eyeLocation = 10.0;
 
     private RenderPanel panel;
 
@@ -34,13 +43,28 @@ public class RenderFrame extends JFrame {
 
         System.out.println("Width: " + this.getBounds() + " Height: " + this.getAlignmentY());
         this.setVisible(true);
+        this.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                //System.out.println("Key pressed: " + e.getKeyChar());
+                if(e.getKeyChar() == 'S' || e.getKeyChar() == 's'){
+                    eyeLocation++;
+                    screenLocation++;
+                }
+                else if(e.getKeyChar() == 'W' || e.getKeyChar() == 'w'){
+                    eyeLocation--;
+                    screenLocation--;
+                }
+                else if(e.getKeyChar() == '\u001B'){
+                    paused.set(!paused.get());
+                }
+            }
+        });
+
     }
 
 
     public void rotateTest1(){
-
-        double screenLocation = 3.0;
-        double eyeLocation = 10.0;
 
         Point[] vertexList = {
                 new Point(2, 2, 2),
@@ -69,23 +93,28 @@ public class RenderFrame extends JFrame {
         };
 
 
-        for (double angle = 0.0; angle < 8 * Math.PI; angle += 0.1){
-            panel.resetScreen();
-            for (int i = 0; i < vertexList.length; i++) {
-                Pair<Double, Double> point = Main.projection(vertexList[i], screenLocation, eyeLocation);
-                point = new Pair<>(point.getKey(), point.getValue());
-                panel.setPixelStatusCoordinate(true, (int)(point.getKey() * 10), (int)(point.getValue() * 10));
+        while(true){
+            for (double angle = 0.0; /*angle <= 4 * Math.PI + 0.05*/; angle += 0.05){
+                panel.resetScreen();
+                for (Point value : vertexList) {
+                    Pair<Double, Double> point = Main.projection(value, screenLocation, eyeLocation);
+                    point = new Pair<>(point.getKey(), point.getValue());
+                    panel.setPixelStatusCoordinate(true, (int) (point.getKey() * 10), (int) (point.getValue() * 10));
+                }
+                Main.rotateAllOnZAxis(vertexList, 0.05);
+
+
+                try {
+                    Thread.sleep(25);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+                while (paused.get()){
+                }
             }
-            Main.rotateAllOnZAxis(vertexList, 0.1);
-
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-
         }
+
 
     }
 

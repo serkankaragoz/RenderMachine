@@ -77,6 +77,9 @@ public class RenderPanel extends JPanel {
 
 
     private void setPixelStatus(boolean status, int i, int j){
+        if((i < 0 || i >= pseudoPixels.length) || (j < 0 || j >= pseudoPixels[i].length)){
+            return;
+        }
         /*
         try{
             screenArray[i][j] = status;
@@ -94,7 +97,7 @@ public class RenderPanel extends JPanel {
     }
 
     public void setPixelStatusCoordinate(boolean status, int y, int z){
-        setPixelStatus(status, yToArrayIndex(y), zToArrayIndex(z));
+        setPixelStatus(status, zToArrayIndex(z), yToArrayIndex(y));
     }
 
 }
